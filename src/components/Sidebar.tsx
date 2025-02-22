@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Cabinet, Client, Matter, Document } from '../types';
 import {
   HiOutlineFolderOpen,
@@ -12,7 +12,15 @@ import { SearchableDropdown } from './SearchableDropdown';
 import { currentUser, organizations } from '../data';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiSearch, FiX } from 'react-icons/fi';
+import {
+  NDButton as Button,
+  NDText as Text,
+  NDDivider as Divider,
+  NDAvatar as Avatar,
+  NDTooltip as Tooltip,
+  NDTreeItem as TreeItem,
+} from '@netdocuments/atticus';
 
 interface SidebarProps {
   cabinets: Cabinet[];
@@ -114,34 +122,62 @@ export function Sidebar({
 
         return (
           <div key={folder.id}>
-            <button
+            <Button
               onClick={() => onSelectFolder(folder.id)}
-              className={`w-full flex items-center px-2 py-1.5 text-sm rounded-md transition-colors ${
-                isSelected ? 'bg-blue-50 text-blue-700' : 
-                isInHierarchy ? 'bg-gray-50 text-gray-900' :
-                'text-gray-700 hover:bg-gray-50'
+              variant={isSelected ? "primary" : "subtle"}
+              className={`w-full justify-start text-left ${
+                isInHierarchy ? 'bg-gray-50' : ''
               }`}
               style={{ paddingLeft: `${(level * 12) + 8}px` }}
             >
-              <HiOutlineFolderOpen className={`w-4 h-4 mr-2 ${
-                isSelected ? 'text-blue-500' : 
-                isInHierarchy ? 'text-yellow-600' :
-                'text-yellow-500'
-              }`} />
-              <span className="truncate">{folder.name}</span>
-            </button>
-            {(hasChildren && (isSelected || isInHierarchy)) && renderFolderLevel(folder.id, level + 1)}
+              <div className="flex items-center">
+                <HiOutlineFolderOpen 
+                  className={`w-4 h-4 mr-2 ${
+                    isSelected ? 'text-blue-500' : 
+                    isInHierarchy ? 'text-yellow-600' :
+                    'text-yellow-500'
+                  }`} 
+                />
+                <Text 
+                  variant="body"
+                  className={`truncate ${
+                    isSelected ? 'text-blue-700' : 
+                    isInHierarchy ? 'text-gray-900' :
+                    'text-gray-700'
+                  }`}
+                >
+                  {folder.name}
+                </Text>
+              </div>
+            </Button>
+            {(hasChildren && (isSelected || isInHierarchy)) && (
+              <div className="ml-2">
+                {renderFolderLevel(folder.id, level + 1)}
+              </div>
+            )}
           </div>
         );
       });
     };
 
     return (
-      <div>
+      <div className="mt-2 space-y-0.5">
         {renderFolderLevel()}
       </div>
     );
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        onOpenSearch();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onOpenSearch]);
 
   return (
     <div
@@ -167,49 +203,47 @@ export function Sidebar({
             />
           )}
           {!isCollapsed && (
-            <h1 className="ml-2 text-gray-900 truncate">
+            <Text variant="large" block className="ml-2 text-gray-900 truncate">
               {organization?.name}
-            </h1>
+            </Text>
           )}
         </div>
-        <button
+        <Button
           onClick={() => setIsCollapsed(!isCollapsed)}
+          variant="subtle"
           className="w-full p-2 hover:bg-gray-100 border-t border-gray-200 flex items-center justify-center"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? (
-            <HiOutlineChevronRight className="w-4 h-4 text-gray-600" />
-          ) : (
-            <HiOutlineChevronLeft className="w-4 h-4 text-gray-600" />
-          )}
-        </button>
+          icon={isCollapsed ? <HiOutlineChevronRight /> : <HiOutlineChevronLeft />}
+        />
       </div>
       
       <div className="flex-1 overflow-y-auto">
         {isCollapsed ? (
           <div className="p-2">
-            <button
-              onClick={onOpenSearch}
-              className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors"
-              title="Search (⌘K)"
-            >
-              <FiMenu size={24} />
-            </button>
+            <Tooltip content="Search (⌘K)" placement="right">
+              <Button
+                onClick={onOpenSearch}
+                variant="subtle"
+                icon={<FiSearch />}
+                className="w-8 h-8"
+              />
+            </Tooltip>
           </div>
         ) : (
           <div className="p-2 space-y-2">
-            <div className="relative">
-              <button
-                onClick={onOpenSearch}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                <FiMenu size={24} />
-                <span className="flex-1 text-left">Search...</span>
-                <kbd className="hidden sm:inline-block px-2 py-0.5 text-xs text-gray-500 bg-gray-100 rounded">
-                  ⌘K
-                </kbd>
-              </button>
-            </div>
+            <Button
+              onClick={onOpenSearch}
+              variant="outline"
+              className="w-full justify-between"
+              icon={<FiSearch />}
+            >
+              <span className="flex-1 text-left">Search...</span>
+              <kbd className="hidden sm:inline-block px-2 py-0.5 text-xs text-gray-500 bg-gray-100 rounded">
+                ⌘K
+              </kbd>
+            </Button>
+
+            <Divider />
 
             <div>
               <SearchableDropdown
@@ -243,6 +277,7 @@ export function Sidebar({
 
             {(selectedCabinet || selectedMatter) && (
               <div className="mt-4">
+                <Divider />
                 <div className="space-y-0.5">
                   {renderFolders()}
                 </div>
@@ -252,55 +287,59 @@ export function Sidebar({
         )}
       </div>
 
-      <div className={`border-t border-gray-200 ${isCollapsed ? 'p-2' : 'p-4'}`}>
+      <Divider />
+      
+      <div className={`${isCollapsed ? 'p-2' : 'p-4'}`}>
         {isCollapsed ? (
           <div className="flex flex-col items-center space-y-2">
-            <img
+            <Avatar
               src={currentUser.avatarUrl}
               alt={currentUser.name}
-              className="w-8 h-8 rounded-full"
+              size="small"
             />
-            <button className="p-1 hover:bg-gray-100 rounded-md" title="Settings">
-              <HiOutlineCog6Tooth className="w-4 h-4 text-gray-600" />
-            </button>
-            <button 
-              className="p-1 hover:bg-gray-100 rounded-md" 
-              title="Sign out"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 text-gray-600" />
-            </button>
+            <Tooltip content="Settings" placement="right">
+              <Button
+                variant="subtle"
+                icon={<HiOutlineCog6Tooth />}
+                className="p-1"
+              />
+            </Tooltip>
+            <Tooltip content="Sign out" placement="right">
+              <Button
+                variant="subtle"
+                icon={<LogOut />}
+                className="p-1"
+                onClick={handleLogout}
+              />
+            </Tooltip>
           </div>
         ) : (
           <div className="flex items-center space-x-3">
-            <img
+            <Avatar
               src={currentUser.avatarUrl}
               alt={currentUser.name}
-              className="w-10 h-10 rounded-full"
-            >
-            </img>
+              size="medium"
+            />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <Text variant="body" weight="semibold" block className="truncate">
                 {currentUser.name}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
+              </Text>
+              <Text variant="caption" className="text-gray-500 truncate">
                 {currentUser.role}
-              </p>
+              </Text>
             </div>
             <div className="flex items-center space-x-2">
-              <button
-                className="p-1 hover:bg-gray-100 rounded-md"
+              <Button
+                variant="subtle"
+                icon={<HiOutlineCog6Tooth />}
                 title="Settings"
-              >
-                <HiOutlineCog6Tooth className="w-4 h-4 text-gray-600" />
-              </button>
-              <button
-                className="p-1 hover:bg-gray-100 rounded-md"
+              />
+              <Button
+                variant="subtle"
+                icon={<LogOut />}
                 title="Sign out"
                 onClick={handleLogout}
-              >
-                <LogOut className="w-4 h-4 text-gray-600" />
-              </button>
+              />
             </div>
           </div>
         )}

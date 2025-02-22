@@ -1,6 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { FiSearch, FiX, FiFolder, FiFile } from 'react-icons/fi'
+import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { Document, Client, Matter } from '../types';
+import { 
+  NDDialog as Modal,
+  NDText as Text,
+  NDButton as Button,
+  NDDivider as Divider,
+  NDTag as Tag,
+} from '@netdocuments/atticus';
+import { FiFile, FiFolder, FiX, FiClock, FiSearch } from 'react-icons/fi';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -11,6 +18,10 @@ interface SearchModalProps {
   onDocumentClick: (doc: Document) => void;
 }
 
+interface SearchEvent {
+  target: { value: string };
+}
+
 export function SearchModal({
   isOpen,
   onClose,
@@ -19,51 +30,38 @@ export function SearchModal({
   matters,
   onDocumentClick,
 }: SearchModalProps) {
+  console.log('SearchModal render:', { isOpen, documents: documents.length });
+
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<Document[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const searchBoxRef = useRef<any>(null);
 
+  // Reset search when modal opens
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
+    if (isOpen) {
+      setSearchTerm('');
+      setResults([]);
+      setSelectedIndex(0);
+      // Manually reset the search box value
+      if (searchBoxRef.current) {
+        searchBoxRef.current.value = '';
       }
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex(prev => (prev + 1) % results.length);
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
-      }
-      if (e.key === 'Enter' && results.length > 0) {
-        e.preventDefault();
-        const selectedDoc = results[selectedIndex];
-        onDocumentClick(selectedDoc);
-        onClose();
-      }
-    };
+    }
+  }, [isOpen]);
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose, results, selectedIndex, onDocumentClick]);
-
+  // Handle search results
   useEffect(() => {
-    setSelectedIndex(0);
-  }, [results]);
-
-  useEffect(() => {
-    if (searchTerm) {
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
       const filtered = documents.filter(doc => {
         const client = clients.find(c => c.id === doc.clientId);
         const matter = matters.find(m => m.id === doc.matterId);
         
         return (
-          doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          matter?.name.toLowerCase().includes(searchTerm.toLowerCase())
+          doc.name.toLowerCase().includes(searchLower) ||
+          client?.name.toLowerCase().includes(searchLower) ||
+          matter?.name.toLowerCase().includes(searchLower)
         );
       });
       setResults(filtered.slice(0, 10));
@@ -72,90 +70,182 @@ export function SearchModal({
     }
   }, [searchTerm, documents, clients, matters]);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  // Add keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setSelectedIndex(prev => (prev + 1) % results.length);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (results.length > 0) {
+            onDocumentClick(results[selectedIndex]);
+            onClose();
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          onClose();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, results, selectedIndex, onDocumentClick, onClose]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" onClick={handleBackdropClick}>
-      <div className="fixed inset-0 bg-black bg-opacity-25 transition-opacity" />
-      
-      <div className="fixed inset-0 flex items-center justify-center p-4" onClick={handleBackdropClick}>
-        <div className="w-full max-w-2xl bg-white rounded-lg shadow-xl">
-          <div className="flex items-center p-4 border-b border-gray-200">
-            <FiSearch className="h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              className="flex-1 px-4 py-1 text-base bg-transparent border-none focus:outline-none focus:ring-0"
-              placeholder="Search documents, clients, or matters..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              autoFocus
-            />
-            <button
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-25" 
+          onClick={onClose}
+        />
+        <div className="relative bg-white rounded-lg shadow-xl max-w-3xl w-full p-6">
+          <div className="flex items-center justify-between mb-6">
+            <Text variant="xLarge" block>Search Documents</Text>
+            <Button
+              icon={<FiX />}
+              variant="subtle"
               onClick={onClose}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-            >
-              <FiX className="h-4 w-4" />
-            </button>
+              aria-label="Close"
+            />
           </div>
 
-          <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
-            <div className="p-2">
-              {results.length > 0 ? (
-                <div className="divide-y divide-gray-100">
-                  {results.map((doc, index) => {
-                    const client = clients.find(c => c.id === doc.clientId);
-                    const matter = matters.find(m => m.id === doc.matterId);
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search documents, clients, or matters..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              autoFocus
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
 
-                    return (
-                      <button
-                        key={doc.id}
-                        className={`w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-left
-                          ${index === selectedIndex ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
-                        onClick={() => {
-                          onDocumentClick(doc);
-                          onClose();
-                        }}
-                        onMouseEnter={(e) => {
-                          setSelectedIndex(index);
-                        }}
-                      >
-                        {doc.type === 'folder' ? (
-                          <FiFolder className="h-4 w-4 text-gray-400" />
-                        ) : (
-                          <FiFile className="h-4 w-4 text-gray-400" />
-                        )}
-                        <div>
-                          <div className="font-medium text-gray-900">{doc.name}</div>
-                          <div className="text-sm text-gray-500">
-                            {client?.name} {matter && `• ${matter.name}`}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            Last modified {new Date(doc.lastActiveAt).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : searchTerm ? (
-                <div className="p-4 text-center text-gray-500">
+          <div className="mt-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+            {results.length > 0 ? (
+              <div className="space-y-1">
+                {results.map((doc, index) => (
+                  <SearchResult 
+                    key={doc.id}
+                    doc={doc}
+                    client={clients.find(c => c.id === doc.clientId)}
+                    matter={matters.find(m => m.id === doc.matterId)}
+                    isSelected={index === selectedIndex}
+                    onClick={() => {
+                      onDocumentClick(doc);
+                      onClose();
+                    }}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                  />
+                ))}
+              </div>
+            ) : searchTerm ? (
+              <div className="text-center py-12">
+                <Text variant="large" block className="text-gray-500">
                   No results found for "{searchTerm}"
-                </div>
-              ) : (
-                <div className="p-4 text-center text-gray-500">
+                </Text>
+                <Text variant="small" className="text-gray-400 mt-2">
+                  Try adjusting your search terms
+                </Text>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Text variant="large" block className="text-gray-500">
                   Start typing to search...
-                </div>
-              )}
-            </div>
+                </Text>
+                <Text variant="small" className="text-gray-400 mt-2">
+                  Search across documents, clients, and matters
+                </Text>
+              </div>
+            )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SearchResult({ 
+  doc, 
+  client, 
+  matter, 
+  isSelected, 
+  onClick, 
+  onMouseEnter 
+}: { 
+  doc: Document;
+  client?: Client;
+  matter?: Matter;
+  isSelected: boolean;
+  onClick: () => void;
+  onMouseEnter: () => void;
+}) {
+  return (
+    <div
+      className={`p-4 rounded-lg cursor-pointer transition-colors ${
+        isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+      }`}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+    >
+      <div className="flex items-start gap-4">
+        {doc.type === 'folder' ? (
+          <FiFolder className="w-5 h-5 text-yellow-500 mt-1" />
+        ) : (
+          <FiFile className="w-5 h-5 text-blue-500 mt-1" />
+        )}
+        <div className="flex-1 min-w-0">
+          <Text block truncate weight="semibold">
+            {doc.name}
+          </Text>
+          
+          <div className="flex items-center gap-2 mt-2">
+            {client && (
+              <Tag 
+                variant="info" 
+                size="small"
+                className="flex items-center gap-1"
+              >
+                {client.name}
+              </Tag>
+            )}
+            {matter && (
+              <Tag 
+                variant="success" 
+                size="small"
+                className="flex items-center gap-1"
+              >
+                {matter.name}
+              </Tag>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-3">
+            <FiClock className="w-4 h-4 text-gray-400" />
+            <Text variant="caption" className="text-gray-500">
+              Last modified {new Date(doc.lastActiveAt).toLocaleDateString()}
+            </Text>
+          </div>
+        </div>
+      </div>
+      <Divider className="mt-4" />
     </div>
   );
 }

@@ -100,6 +100,16 @@ export function MainLayout() {
     navigate(newUrl, { replace: true });
   }, [selectedCabinet, selectedClient, selectedMatter, selectedFolder, navigate]);
 
+  // Add debug logs to track search state
+  useEffect(() => {
+    console.log('Search modal state:', isSearchOpen);
+  }, [isSearchOpen]);
+
+  // Add this effect to track state changes
+  useEffect(() => {
+    console.log('Search modal state changed:', isSearchOpen);
+  }, [isSearchOpen]);
+
   const handleCabinetSelect = (cabinet: Cabinet | null) => {
     setSelectedCabinet(cabinet);
     setSelectedClient(null);
@@ -160,6 +170,12 @@ export function MainLayout() {
     if (doc.type === 'folder') {
       handleFolderSelect(doc.id);
     }
+  };
+
+  // Add debug log to track click handler
+  const handleOpenSearch = () => {
+    console.log('Opening search modal');
+    setIsSearchOpen(true);
   };
 
   const renderContent = () => {
@@ -264,7 +280,7 @@ export function MainLayout() {
           onSelectClient={handleClientSelect}
           onSelectMatter={handleMatterSelect}
           onSelectFolder={handleFolderSelect}
-          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenSearch={handleOpenSearch}
         />
       </div>
 
@@ -377,7 +393,10 @@ export function MainLayout() {
 
       <SearchModal
         isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
+        onClose={() => {
+          console.log('Closing search modal');
+          setIsSearchOpen(false);
+        }}
         documents={documents}
         clients={clients}
         matters={matters}
