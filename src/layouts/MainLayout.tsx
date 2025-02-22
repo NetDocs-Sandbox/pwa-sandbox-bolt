@@ -195,7 +195,10 @@ export function MainLayout() {
           clients={clients}
           clientId={selectedClient.id}
           selectedFolder={selectedFolder}
-          onMatterClick={handleMatterSelect}
+          onMatterClick={(matterId: string) => {
+            const matter = matters.find(m => m.id === matterId);
+            if (matter) handleMatterSelect(matter);
+          }}
           onSeeAllMatters={() => setSelectedMatter(null)}
           onFolderClick={handleFolderSelect}
         />
@@ -214,7 +217,10 @@ export function MainLayout() {
             const client = clients.find(c => c.id === clientId);
             if (client) handleClientSelect(client);
           }}
-          onMatterClick={handleMatterSelect}
+          onMatterClick={(matterId: string) => {
+            const matter = matters.find(m => m.id === matterId);
+            if (matter) handleMatterSelect(matter);
+          }}
           onSeeAllClients={() => setSelectedClient(null)}
           onSeeAllMatters={() => setSelectedMatter(null)}
           onFolderClick={handleFolderSelect}

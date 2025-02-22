@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { Document, Client, Matter } from '../types';
 import { FiFile, FiFolder, FiChevronDown, FiChevronUp, FiSearch, FiSettings, FiFilter } from 'react-icons/fi';
+import { usePreview } from '../contexts/PreviewContext';
+
 interface DataGridProps {
   documents: Document[];
   clients: Client[];
@@ -45,6 +47,9 @@ export function DataGrid({
   const observerTarget = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
   const tableRef = useRef<HTMLDivElement>(null);
+  const hoveredDocRef = useRef<{ doc: Document, x: number, y: number } | null>(null);
+  const preview = usePreview();
+  const { isCtrlPressed } = preview;
 
   const getColumns = (): Column[] => {
     // Only return name column for mobile
@@ -229,6 +234,26 @@ export function DataGrid({
     setDisplayCount(ITEMS_PER_PAGE);
   }, [selectedCabinetId, selectedClientId, selectedMatterId, selectedFolder]);
 
+  useEffect(() => {
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Control') {
+        preview.close();
+      }
+    };
+
+    window.addEventListener('keyup', handleKeyUp);
+    return () => window.removeEventListener('keyup', handleKeyUp);
+  }, [preview]);
+
+  useEffect(() => {
+    if (isCtrlPressed && hoveredDocRef.current) {
+      const { doc, x, y } = hoveredDocRef.current;
+      if (doc.type !== 'folder') {
+        preview.show(doc.id, x, y);
+      }
+    }
+  }, [isCtrlPressed, preview]);
+
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <FiChevronDown className="w-3 h-3 text-gray-400" />;
     return sortDirection === 'asc' 
@@ -352,6 +377,19 @@ export function DataGrid({
                     } hover:bg-blue-50 transition-colors ${
                       doc.type === 'folder' ? 'cursor-pointer' : ''
                     }`}
+                    onClick={() => doc.type === 'folder' && onFolderClick(doc.id)}
+                    onMouseEnter={(e) => {
+                      hoveredDocRef.current = { doc, x: e.clientX, y: e.clientY };
+                      if (isCtrlPressed && doc.type !== 'folder') {
+                        preview.show(doc.id, e.clientX, e.clientY);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      hoveredDocRef.current = null;
+                      if (isCtrlPressed) {
+                        preview.close();
+                      }
+                    }}
                   >
                     <td className="w-4 px-3 py-2 first:pl-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center">

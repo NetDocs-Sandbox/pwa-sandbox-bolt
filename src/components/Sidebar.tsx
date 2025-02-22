@@ -225,7 +225,7 @@ export function Sidebar({
               <SearchableDropdown
                 options={filteredClients}
                 value={selectedClient}
-                onChange={onSelectClient}
+                onChange={(option) => onSelectClient(option as Client | null)}
                 placeholder="Select a Client"
                 label=""
               />
@@ -235,7 +235,7 @@ export function Sidebar({
               <SearchableDropdown
                 options={filteredMatters}
                 value={selectedMatter}
-                onChange={onSelectMatter}
+                onChange={(option) => onSelectMatter(option as Matter | null)}
                 placeholder="Select a Matter"
                 label=""
               />

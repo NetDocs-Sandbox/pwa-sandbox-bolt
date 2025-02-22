@@ -28,12 +28,6 @@ export function SearchModal({
       if (e.key === 'Escape') {
         onClose();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        if (!isOpen) {
-          onClose();
-        }
-      }
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSelectedIndex(prev => (prev + 1) % results.length);
@@ -51,7 +45,9 @@ export function SearchModal({
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, onClose, results, selectedIndex, onDocumentClick]);
 
   useEffect(() => {
@@ -76,13 +72,19 @@ export function SearchModal({
     }
   }, [searchTerm, documents, clients, matters]);
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black bg-opacity-25 transition-opacity" onClick={onClose} />
+    <div className="fixed inset-0 z-50 overflow-y-auto" onClick={handleBackdropClick}>
+      <div className="fixed inset-0 bg-black bg-opacity-25 transition-opacity" />
       
-      <div className="fixed inset-0 flex items-center justify-center p-4">
+      <div className="fixed inset-0 flex items-center justify-center p-4" onClick={handleBackdropClick}>
         <div className="w-full max-w-2xl bg-white rounded-lg shadow-xl">
           <div className="flex items-center p-4 border-b border-gray-200">
             <FiSearch className="h-4 w-4 text-gray-400" />
@@ -119,7 +121,9 @@ export function SearchModal({
                           onDocumentClick(doc);
                           onClose();
                         }}
-                        onMouseEnter={() => setSelectedIndex(index)}
+                        onMouseEnter={(e) => {
+                          setSelectedIndex(index);
+                        }}
                       >
                         {doc.type === 'folder' ? (
                           <FiFolder className="h-4 w-4 text-gray-400" />

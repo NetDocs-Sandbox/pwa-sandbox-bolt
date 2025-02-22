@@ -4,6 +4,7 @@ import { FiSearch, FiChevronDown, FiX } from 'react-icons/fi';
 interface Option {
   id: string;
   name: string;
+  [key: string]: any; // Allow additional properties
 }
 
 interface SearchableDropdownProps {
