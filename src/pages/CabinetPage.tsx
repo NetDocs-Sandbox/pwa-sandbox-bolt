@@ -1,6 +1,6 @@
 import React from 'react';
 import { Client, Matter, Document } from '../types';
-import { ChevronRight } from 'lucide-react';
+import { FiChevronRight } from 'react-icons/fi';
 import { DataGrid } from '../components/DataGrid';
 
 interface CabinetPageProps {
@@ -55,7 +55,7 @@ export function CabinetPage({
             className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
           >
             See all
-            <ChevronRight className="w-4 h-4 ml-1" />
+            <FiChevronRight className="w-4 h-4 ml-1" />
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -79,7 +79,7 @@ export function CabinetPage({
             className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
           >
             See all
-            <ChevronRight className="w-4 h-4 ml-1" />
+            <FiChevronRight className="w-4 h-4 ml-1" />
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

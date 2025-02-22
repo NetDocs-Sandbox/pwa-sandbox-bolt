@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Scale } from 'lucide-react';
+import { FaBalanceScale as Scale } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 
 export function Login() {

@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { Cabinet, Client, Matter, Document } from '../types';
 import {
-  FolderClosed,
-  ChevronLeft,
-  ChevronRight,
-  Scale,
-  LogOut,
-  Settings,
-  Search,
-} from 'lucide-react';
+  HiOutlineFolderOpen,
+  HiOutlineChevronLeft,
+  HiOutlineChevronRight,
+  HiOutlineCog6Tooth,
+} from 'react-icons/hi2';
+import { FaBalanceScale as Scale } from 'react-icons/fa';
+import { RiLogoutBoxLine as LogOut } from 'react-icons/ri';
 import { SearchableDropdown } from './SearchableDropdown';
 import { currentUser, organizations } from '../data';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { FiMenu, FiX } from 'react-icons/fi';
 
 interface SidebarProps {
   cabinets: Cabinet[];
@@ -123,7 +123,7 @@ export function Sidebar({
               }`}
               style={{ paddingLeft: `${(level * 12) + 8}px` }}
             >
-              <FolderClosed className={`w-4 h-4 mr-2 ${
+              <HiOutlineFolderOpen className={`w-4 h-4 mr-2 ${
                 isSelected ? 'text-blue-500' : 
                 isInHierarchy ? 'text-yellow-600' :
                 'text-yellow-500'
@@ -178,9 +178,9 @@ export function Sidebar({
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <HiOutlineChevronRight className="w-4 h-4 text-gray-600" />
           ) : (
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
+            <HiOutlineChevronLeft className="w-4 h-4 text-gray-600" />
           )}
         </button>
       </div>
@@ -193,7 +193,7 @@ export function Sidebar({
               className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors"
               title="Search (⌘K)"
             >
-              <Search className="w-4 h-4 text-gray-600" />
+              <FiMenu size={24} />
             </button>
           </div>
         ) : (
@@ -203,7 +203,7 @@ export function Sidebar({
                 onClick={onOpenSearch}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
               >
-                <Search className="w-4 h-4 text-gray-500" />
+                <FiMenu size={24} />
                 <span className="flex-1 text-left">Search...</span>
                 <kbd className="hidden sm:inline-block px-2 py-0.5 text-xs text-gray-500 bg-gray-100 rounded">
                   ⌘K
@@ -261,7 +261,7 @@ export function Sidebar({
               className="w-8 h-8 rounded-full"
             />
             <button className="p-1 hover:bg-gray-100 rounded-md" title="Settings">
-              <Settings className="w-4 h-4 text-gray-600" />
+              <HiOutlineCog6Tooth className="w-4 h-4 text-gray-600" />
             </button>
             <button 
               className="p-1 hover:bg-gray-100 rounded-md" 
@@ -277,7 +277,8 @@ export function Sidebar({
               src={currentUser.avatarUrl}
               alt={currentUser.name}
               className="w-10 h-10 rounded-full"
-            />
+            >
+            </img>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
                 {currentUser.name}
@@ -291,7 +292,7 @@ export function Sidebar({
                 className="p-1 hover:bg-gray-100 rounded-md"
                 title="Settings"
               >
-                <Settings className="w-4 h-4 text-gray-600" />
+                <HiOutlineCog6Tooth className="w-4 h-4 text-gray-600" />
               </button>
               <button
                 className="p-1 hover:bg-gray-100 rounded-md"

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Document, Client, Matter } from '../types';
 import { DataGrid } from '../components/DataGrid';
-import { Scale } from 'lucide-react';
+import { FaBalanceScale as Scale } from 'react-icons/fa';
 
 interface MatterPageProps {
   documents: Document[];

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, X, FolderClosed, File } from 'lucide-react';
+import { FiSearch, FiX, FiFolder, FiFile } from 'react-icons/fi'
 import { Document, Client, Matter } from '../types';
 
 interface SearchModalProps {
@@ -21,6 +21,7 @@ export function SearchModal({
 }: SearchModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<Document[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -33,11 +34,29 @@ export function SearchModal({
           onClose();
         }
       }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev + 1) % results.length);
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
+      }
+      if (e.key === 'Enter' && results.length > 0) {
+        e.preventDefault();
+        const selectedDoc = results[selectedIndex];
+        onDocumentClick(selectedDoc);
+        onClose();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, results, selectedIndex, onDocumentClick]);
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [results]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -66,7 +85,7 @@ export function SearchModal({
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl bg-white rounded-lg shadow-xl">
           <div className="flex items-center p-4 border-b border-gray-200">
-            <Search className="w-5 h-5 text-gray-400" />
+            <FiSearch className="h-4 w-4 text-gray-400" />
             <input
               type="text"
               className="flex-1 px-4 py-1 text-base bg-transparent border-none focus:outline-none focus:ring-0"
@@ -77,9 +96,9 @@ export function SearchModal({
             />
             <button
               onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <FiX className="h-4 w-4" />
             </button>
           </div>
 
@@ -87,23 +106,25 @@ export function SearchModal({
             <div className="p-2">
               {results.length > 0 ? (
                 <div className="divide-y divide-gray-100">
-                  {results.map((doc) => {
+                  {results.map((doc, index) => {
                     const client = clients.find(c => c.id === doc.clientId);
                     const matter = matters.find(m => m.id === doc.matterId);
 
                     return (
                       <button
                         key={doc.id}
-                        className="w-full flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                        className={`w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-left
+                          ${index === selectedIndex ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
                         onClick={() => {
                           onDocumentClick(doc);
                           onClose();
                         }}
+                        onMouseEnter={() => setSelectedIndex(index)}
                       >
                         {doc.type === 'folder' ? (
-                          <FolderClosed className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                          <FiFolder className="h-4 w-4 text-gray-400" />
                         ) : (
-                          <File className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                          <FiFile className="h-4 w-4 text-gray-400" />
                         )}
                         <div>
                           <div className="font-medium text-gray-900">{doc.name}</div>

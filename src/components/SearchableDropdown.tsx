@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ChevronDown, X } from 'lucide-react';
+import { FiSearch, FiChevronDown, FiX } from 'react-icons/fi';
 
 interface Option {
   id: string;
@@ -60,10 +60,10 @@ export function SearchableDropdown({
               }}
               className="p-1 hover:bg-gray-100 rounded-full mr-1"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <FiX className="w-4 h-4 text-gray-500" />
             </button>
           )}
-          <ChevronDown className="w-4 h-4 text-gray-500" />
+          <FiChevronDown className="w-4 h-4 text-gray-500" />
         </div>
       </div>
 
@@ -71,7 +71,7 @@ export function SearchableDropdown({
         <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
           <div className="p-2 border-b">
             <div className="flex items-center px-2 bg-gray-50 rounded-md">
-              <Search className="w-4 h-4 text-gray-400" />
+              <FiSearch className="w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 className="w-full px-2 py-1 text-sm bg-transparent border-none focus:outline-none"
