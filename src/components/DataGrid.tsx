@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { Document, Client, Matter } from '../types';
-import { File, FolderClosed, ChevronDown, ChevronUp, Search, FolderOpen, Settings, Filter } from 'lucide-react';
+import { FiFile, FiFolder, FiChevronDown, FiChevronUp, FiSearch, FiSettings, FiFilter } from 'react-icons/fi';
+import { usePreview } from '../contexts/PreviewContext';
 
 interface DataGridProps {
   documents: Document[];
@@ -46,6 +47,9 @@ export function DataGrid({
   const observerTarget = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
   const tableRef = useRef<HTMLDivElement>(null);
+  const hoveredDocRef = useRef<{ doc: Document, x: number, y: number } | null>(null);
+  const preview = usePreview();
+  const { isCtrlPressed } = preview;
 
   const getColumns = (): Column[] => {
     // Only return name column for mobile
@@ -230,11 +234,31 @@ export function DataGrid({
     setDisplayCount(ITEMS_PER_PAGE);
   }, [selectedCabinetId, selectedClientId, selectedMatterId, selectedFolder]);
 
+  useEffect(() => {
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Control') {
+        preview.close();
+      }
+    };
+
+    window.addEventListener('keyup', handleKeyUp);
+    return () => window.removeEventListener('keyup', handleKeyUp);
+  }, [preview]);
+
+  useEffect(() => {
+    if (isCtrlPressed && hoveredDocRef.current) {
+      const { doc, x, y } = hoveredDocRef.current;
+      if (doc.type !== 'folder') {
+        preview.show(doc.id, x, y);
+      }
+    }
+  }, [isCtrlPressed, preview]);
+
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ChevronDown className="w-3 h-3 text-gray-400" />;
+    if (sortField !== field) return <FiChevronDown className="w-3 h-3 text-gray-400" />;
     return sortDirection === 'asc' 
-      ? <ChevronUp className="w-3 h-3 text-blue-600" />
-      : <ChevronDown className="w-3 h-3 text-blue-600" />;
+      ? <FiChevronUp className="w-3 h-3 text-blue-600" />
+      : <FiChevronDown className="w-3 h-3 text-blue-600" />;
   };
 
   const handleRowClick = (doc: Document) => {
@@ -268,7 +292,7 @@ export function DataGrid({
   if (filteredAndSortedDocuments.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-        <FolderOpen className="mx-auto h-12 w-12 text-gray-400" />
+        <FiFolder className="mx-auto h-12 w-12 text-gray-400" />
         <h3 className="mt-4 text-lg font-medium text-gray-900">No items found</h3>
         <p className="mt-2 text-sm text-gray-500">
           This location is empty. Items you add will appear here.
@@ -289,13 +313,13 @@ export function DataGrid({
               className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 hover:text-gray-700"
               title="Filter"
             >
-              <Filter className="w-4 h-4" />
+              <FiFilter className="w-4 h-4" />
             </button>
             <button
               className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 hover:text-gray-700"
               title="Settings"
             >
-              <Settings className="w-4 h-4" />
+              <FiSettings className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -353,6 +377,19 @@ export function DataGrid({
                     } hover:bg-blue-50 transition-colors ${
                       doc.type === 'folder' ? 'cursor-pointer' : ''
                     }`}
+                    onClick={() => doc.type === 'folder' && onFolderClick(doc.id)}
+                    onMouseEnter={(e) => {
+                      hoveredDocRef.current = { doc, x: e.clientX, y: e.clientY };
+                      if (isCtrlPressed && doc.type !== 'folder') {
+                        preview.show(doc.id, e.clientX, e.clientY);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      hoveredDocRef.current = null;
+                      if (isCtrlPressed) {
+                        preview.close();
+                      }
+                    }}
                   >
                     <td className="w-4 px-3 py-2 first:pl-4" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center">
@@ -374,9 +411,9 @@ export function DataGrid({
                     >
                       <div className="flex items-center">
                         {doc.type === 'folder' ? (
-                          <FolderClosed className="flex-shrink-0 w-4 h-4 text-yellow-500 mr-2" />
+                          <FiFolder className="flex-shrink-0 w-4 h-4 text-yellow-500 mr-2" />
                         ) : (
-                          <File className="flex-shrink-0 w-4 h-4 text-blue-500 mr-2" />
+                          <FiFile className="flex-shrink-0 w-4 h-4 text-blue-500 mr-2" />
                         )}
                         <div className="text-sm font-medium text-gray-900 truncate">{doc.name}</div>
                       </div>

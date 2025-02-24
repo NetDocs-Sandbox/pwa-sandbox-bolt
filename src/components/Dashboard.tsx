@@ -23,7 +23,6 @@ export function Dashboard({
   onMatterSelect,
   onFolderSelect,
 }: DashboardProps) {
-  // Get recent documents (sorted by lastActiveAt)
   const recentDocuments = [...documents]
     .filter(doc => doc.type === 'file')
     .sort((a, b) => new Date(b.lastActiveAt).getTime() - new Date(a.lastActiveAt).getTime());

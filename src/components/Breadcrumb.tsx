@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { FiChevronRight } from 'react-icons/fi';
 import { Cabinet, Client, Matter, Document } from '../types';
 
 interface BreadcrumbProps {
@@ -36,7 +36,7 @@ export function Breadcrumb({
       
       {cabinet && (
         <>
-          <ChevronRight className="w-4 h-4" />
+          <FiChevronRight className="w-4 h-4" />
           <button
             onClick={onCabinetClick}
             className="hover:text-blue-600 transition-colors"
@@ -48,7 +48,7 @@ export function Breadcrumb({
       
       {client && (
         <>
-          <ChevronRight className="w-4 h-4" />
+          <FiChevronRight className="w-4 h-4" />
           <button
             onClick={onClientClick}
             className="hover:text-blue-600 transition-colors"
@@ -60,7 +60,7 @@ export function Breadcrumb({
       
       {matter && (
         <>
-          <ChevronRight className="w-4 h-4" />
+          <FiChevronRight className="w-4 h-4" />
           <button
             onClick={onMatterClick}
             className="hover:text-blue-600 transition-colors"
@@ -72,7 +72,7 @@ export function Breadcrumb({
 
       {folder && (
         <>
-          <ChevronRight className="w-4 h-4" />
+          <FiChevronRight className="w-4 h-4" />
           <button
             onClick={onFolderClick}
             className="hover:text-blue-600 transition-colors"

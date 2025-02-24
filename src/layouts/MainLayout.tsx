@@ -11,7 +11,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { Cabinet, Client, Matter, Document } from '../types';
 import { cabinets, clients, matters, documents } from '../data';
-import { Share2, UserCircle2, Lock, MoreHorizontal } from 'lucide-react';
+import { FiShare2 as Share2, FiUser as UserCircle2, FiLock as Lock, FiMoreHorizontal as MoreHorizontal } from 'react-icons/fi';
 
 export function MainLayout() {
   const navigate = useNavigate();
@@ -195,7 +195,10 @@ export function MainLayout() {
           clients={clients}
           clientId={selectedClient.id}
           selectedFolder={selectedFolder}
-          onMatterClick={handleMatterSelect}
+          onMatterClick={(matterId: string) => {
+            const matter = matters.find(m => m.id === matterId);
+            if (matter) handleMatterSelect(matter);
+          }}
           onSeeAllMatters={() => setSelectedMatter(null)}
           onFolderClick={handleFolderSelect}
         />
@@ -214,7 +217,10 @@ export function MainLayout() {
             const client = clients.find(c => c.id === clientId);
             if (client) handleClientSelect(client);
           }}
-          onMatterClick={handleMatterSelect}
+          onMatterClick={(matterId: string) => {
+            const matter = matters.find(m => m.id === matterId);
+            if (matter) handleMatterSelect(matter);
+          }}
           onSeeAllClients={() => setSelectedClient(null)}
           onSeeAllMatters={() => setSelectedMatter(null)}
           onFolderClick={handleFolderSelect}
