@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.9.5",
-    "@netdocuments/atticus": "^0.1.1028",
+    // "@netdocuments/atticus": "^0.1.1028",
     "graphql": "^16.8.1",
     "jsonwebtoken": "^9.0.2",
     "react": "^18.3.1",
